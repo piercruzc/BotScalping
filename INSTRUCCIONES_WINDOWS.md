@@ -357,7 +357,8 @@ También el formato del PDF (Entrada 1 / Entrada 2).
 
 Reglas:
 
-- 3 tickets: FIRST → TP1, punto medio → TP2, SECOND → TP3 (o trail si está activo).
+- 3 tickets: FIRST, punto medio y SECOND. Las 3 llevan el **mismo TP3** (y el mismo SL). El gestor pone BE al tocar TP1 y puede hacer trail del SL sin quitar el TP.
+- Si en el panel marcas **TP distinto por entrada**, entonces L1=TP1, L2=TP2, L3=TP3. Si está apagado (recomendado), las 3 usan TP3.
 - Mismo lotaje en las tres.
 - BUY: ask ≈ entrada → market; ask por encima → buy limit; ask por debajo → buy stop. SELL al revés.
 - Si el precio ya pasó TP1, descarta la señal (no persigue).
@@ -407,6 +408,15 @@ Pusiste un ID de **usuario** (el tuyo o el de un bot) en `TELEGRAM_CHANNEL_ID`. 
 
 **`El paquete MetaTrader5 solo funciona en Windows`**  
 Estás en Mac/Linux, o Python no cargó el paquete.
+
+**`retcode 10027` / AutoTrading disabled by client**  
+El bot llegó a MT5, pero el terminal **no autoriza** órdenes. En MT5:
+
+1. En la barra de arriba, pulsa **Algo Trading** (a veces dice AutoTrading) hasta que quede **verde**. Si está rojo o gris, no opera.
+2. **Herramientas → Opciones → Asesores Expertos** (Tools → Options → Expert Advisors): marca **Permitir trading algorítmico**.
+3. Acepta, y si hace falta cierra y abre de nuevo el bot (`python -m src`).
+
+Eso no se activa desde el `.env` ni desde el panel.
 
 **MT5 no conecta**  
 - Sin path: el terminal tiene que estar abierto y logueado.  

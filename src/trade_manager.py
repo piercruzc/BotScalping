@@ -115,7 +115,7 @@ class TradeManager:
                 if pos.sl and new_sl >= pos.sl:
                     continue
             try:
-                result = self.runtime.mt5.modify_sl(pos.ticket, new_sl, 0.0, settings)
+                result = self.runtime.mt5.modify_sl(pos.ticket, new_sl, pos.tp, settings)
                 if result.get("ok"):
                     self.runtime.logs.info(f"Trail SL {new_sl:.2f} ticket {pos.ticket}")
             except Exception as exc:  # noqa: BLE001

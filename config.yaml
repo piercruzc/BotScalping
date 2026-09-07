@@ -10,6 +10,7 @@ deviation_points: 50
 trail_enabled: true
 trail_start_pips: 80
 trail_distance_pips: 40
+split_take_profits: false
 max_concurrent_signals: 1
 dry_run: true
 telegram_enabled: true

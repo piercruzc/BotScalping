@@ -28,6 +28,7 @@ class ConfigPatch(BaseModel):
     trail_distance_pips: float | None = Field(default=None, ge=0)
     dry_run: bool | None = None
     telegram_enabled: bool | None = None
+    split_take_profits: bool | None = None
 
 
 class ModeBody(BaseModel):

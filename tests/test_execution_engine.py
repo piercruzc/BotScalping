@@ -72,6 +72,18 @@ def test_sell_limit_when_bid_below_entry():
     assert plan.orders[0].kind == "SELL_LIMIT"
 
 
+def test_all_legs_use_tp3_by_default():
+    settings = Settings(trail_enabled=True, split_take_profits=False)
+    plan = ExecutionEngine().plan(_buy(), Tick(bid=4410.8, ask=4411.0), settings)
+    assert [order.tp for order in plan.accepted_orders] == [4430, 4430, 4430]
+
+
+def test_split_assigns_tp1_tp2_tp3():
+    settings = Settings(trail_enabled=True, split_take_profits=True)
+    plan = ExecutionEngine().plan(_buy(), Tick(bid=4410.8, ask=4411.0), settings)
+    assert [order.tp for order in plan.accepted_orders] == [4415, 4420, 4430]
+
+
 def test_wide_spread_rejected():
     settings = Settings(max_spread_pips=10, pip_size=0.1)
     plan = ExecutionEngine().plan(_buy(), Tick(bid=4410, ask=4413), settings)

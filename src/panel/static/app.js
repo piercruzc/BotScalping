@@ -154,6 +154,7 @@ form.addEventListener("submit", async (event) => {
     trail_start_pips: Number(form.trail_start_pips.value),
     trail_distance_pips: Number(form.trail_distance_pips.value),
     trail_enabled: form.trail_enabled.checked,
+    split_take_profits: form.split_take_profits.checked,
     telegram_enabled: form.telegram_enabled.checked,
     dry_run: dryRun.checked,
   };

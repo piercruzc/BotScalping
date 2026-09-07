@@ -101,6 +101,20 @@ class MT5Client:
             trade_mode=label,
         )
 
+    def autotrading_allowed(self) -> tuple[bool, str]:
+        if mt5 is None or not self._connected:
+            return False, "MT5 no está conectado"
+        info = mt5.terminal_info()
+        if info is None:
+            return False, "No pude leer el estado del terminal"
+        if not bool(getattr(info, "trade_allowed", False)):
+            return False, (
+                "AutoTrading desactivado en MT5 (retcode 10027). "
+                "En la barra, pulsa Algo Trading / AutoTrading hasta que quede VERDE. "
+                "También: Herramientas → Opciones → Asesores Expertos → Permitir trading algorítmico."
+            )
+        return True, ""
+
     def tick(self, symbol: str) -> Optional[Tick]:
         if mt5 is None or not self._connected:
             return None
@@ -212,6 +226,7 @@ class MT5Client:
         return {
             "ok": ok,
             "retcode": retcode,
+            "hint": _retcode_hint(retcode),
             "comment": getattr(result, "comment", ""),
             "order": int(getattr(result, "order", 0) or 0),
             "deal": int(getattr(result, "deal", 0) or 0),
@@ -219,6 +234,8 @@ class MT5Client:
             "volume": volume,
             "kind": order.kind,
             "entry": price,
+            "tp": tp,
+            "sl": sl,
             "leg": order.leg,
         }
 
@@ -238,6 +255,22 @@ class MT5Client:
         if result is None:
             raise RuntimeError(f"modify falló: {mt5.last_error()}")
         return {"ok": int(result.retcode) in {10008, 10009}, "retcode": int(result.retcode)}
+
+
+def _retcode_hint(retcode: int) -> str:
+    return {
+        10027: (
+            "AutoTrading desactivado en MT5. Pulsa el botón Algo Trading / AutoTrading "
+            "hasta que quede verde. Herramientas → Opciones → Asesores Expertos → "
+            "Permitir trading algorítmico."
+        ),
+        10004: "Requote: el precio cambió.",
+        10016: "Stop loss o take profit inválidos.",
+        10018: "El mercado está cerrado.",
+        10019: "No hay dinero suficiente.",
+        10021: "El precio cambió.",
+        10030: "Tipo de filling no soportado por el símbolo.",
+    }.get(retcode, "")
 
 
 def _credentials_for_mode(mode: str) -> tuple[int | None, str, str]:

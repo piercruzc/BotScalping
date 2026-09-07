@@ -24,9 +24,9 @@ class ExecutionEngine:
 
         chase = _chasing_away_from_zone(signal, tick, settings)
         legs = (
-            (1, signal.first_entry, signal.tp1),
-            (2, signal.mid_entry, signal.tp2),
-            (3, signal.second_entry, None if settings.trail_enabled else signal.tp3),
+            (1, signal.first_entry, _tp_for_leg(signal, settings, 1)),
+            (2, signal.mid_entry, _tp_for_leg(signal, settings, 2)),
+            (3, signal.second_entry, _tp_for_leg(signal, settings, 3)),
         )
         orders: list[PlannedOrder] = []
         for leg, entry, tp in legs:
@@ -85,6 +85,17 @@ def _build_leg(
         skip_reason=skip,
     )
     return order
+
+
+def _tp_for_leg(signal: Signal, settings: Settings, leg: int) -> float:
+    """Todas las órdenes llevan TP. Por defecto las 3 usan TP3.
+
+    Si split_take_profits está activo: L1=TP1, L2=TP2, L3=TP3.
+    El trail ya no deja la tercera sin TP (el gestor solo mueve el SL).
+    """
+    if settings.split_take_profits:
+        return {1: signal.tp1, 2: signal.tp2, 3: signal.tp3}[leg]
+    return signal.tp3
 
 
 def _order_kind(direction: str, entry: float, tick: Tick, tolerance: float) -> OrderKind:

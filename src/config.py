@@ -21,6 +21,7 @@ DEFAULTS = {
     "trail_enabled": True,
     "trail_start_pips": 80.0,
     "trail_distance_pips": 40.0,
+    "split_take_profits": False,
     "max_concurrent_signals": 1,
     "dry_run": True,
     "telegram_enabled": True,
@@ -43,6 +44,7 @@ EDITABLE_FIELDS = {
     "trail_distance_pips",
     "dry_run",
     "telegram_enabled",
+    "split_take_profits",
 }
 
 
@@ -60,6 +62,7 @@ class Settings:
     trail_enabled: bool = True
     trail_start_pips: float = 80.0
     trail_distance_pips: float = 40.0
+    split_take_profits: bool = False
     max_concurrent_signals: int = 1
     dry_run: bool = True
     telegram_enabled: bool = True
@@ -86,6 +89,7 @@ class Settings:
             "trail_enabled": self.trail_enabled,
             "trail_start_pips": self.trail_start_pips,
             "trail_distance_pips": self.trail_distance_pips,
+            "split_take_profits": self.split_take_profits,
             "max_concurrent_signals": self.max_concurrent_signals,
             "dry_run": self.dry_run,
             "telegram_enabled": self.telegram_enabled,
@@ -166,6 +170,7 @@ class ConfigStore:
             "trail_enabled": settings.trail_enabled,
             "trail_start_pips": settings.trail_start_pips,
             "trail_distance_pips": settings.trail_distance_pips,
+            "split_take_profits": settings.split_take_profits,
             "max_concurrent_signals": settings.max_concurrent_signals,
             "dry_run": settings.dry_run,
             "telegram_enabled": settings.telegram_enabled,
@@ -214,7 +219,7 @@ def _coerce(key: str, value: Any) -> Any:
         return float(value)
     if key == "deviation_points":
         return int(value)
-    if key in {"dry_run", "telegram_enabled", "trail_enabled"}:
+    if key in {"dry_run", "telegram_enabled", "trail_enabled", "split_take_profits"}:
         if isinstance(value, str):
             return value.strip().lower() in {"1", "true", "yes", "on"}
         return bool(value)

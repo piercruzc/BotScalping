@@ -55,6 +55,9 @@ class BotRuntime:
         account = self.mt5.account()
         tick = self.mt5.tick(settings.symbol) if account.connected else None
         alignment = self.safety.check_mode_alignment(settings, account)
+        at_ok, at_msg = self.mt5.autotrading_allowed() if account.connected else (False, "")
+        if account.connected and not at_ok:
+            alignment = alignment or at_msg
         positions = self.mt5.positions(settings.symbol, settings.magic) if account.connected else []
         pendings = self.mt5.pendings(settings.symbol, settings.magic) if account.connected else []
         spread_pips = None
@@ -75,7 +78,8 @@ class BotRuntime:
             },
             "tick": {"bid": tick.bid, "ask": tick.ask, "spread_pips": spread_pips} if tick else None,
             "alignment_error": alignment,
-            "can_trade": alignment is None and account.connected and not settings.dry_run,
+            "can_trade": alignment is None and account.connected and at_ok and not settings.dry_run,
+            "autotrading": at_ok,
             "positions": [pos.__dict__ for pos in positions],
             "pendings": [pending.__dict__ for pending in pendings],
             "active": self.state.data.active.__dict__ if self.state.data.active else None,
@@ -151,7 +155,8 @@ class BotRuntime:
                     )
                 else:
                     self.logs.error(
-                        f"L{order.leg} rechazada retcode={result.get('retcode')} {result.get('comment')}"
+                        f"L{order.leg} rechazada retcode={result.get('retcode')} "
+                        f"{result.get('hint') or result.get('comment')}"
                     )
             except Exception as exc:  # noqa: BLE001
                 self.logs.error(f"L{order.leg} error: {exc}")
