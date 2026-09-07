@@ -106,7 +106,18 @@ class ConfigStore:
         self.path = Path(path)
         self._lock = threading.RLock()
         self._settings = Settings()
+        self._ensure_local_file()
         self.reload()
+
+    def _ensure_local_file(self) -> None:
+        if self.path.exists():
+            return
+        example = self.path.with_name("config.yaml.example")
+        if example.exists():
+            self.path.write_text(example.read_text(encoding="utf-8"), encoding="utf-8")
+            return
+        self._settings = Settings()
+        self._persist()
 
     def get(self) -> Settings:
         with self._lock:

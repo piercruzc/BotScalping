@@ -30,6 +30,7 @@ python -c "import struct; print(struct.calcsize('P') * 8)"
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 copy .env.example .env
+if not exist config.yaml copy config.yaml.example config.yaml
 notepad .env
 ```
 
@@ -66,6 +67,14 @@ python -m src
 - Parar: `Ctrl+C` en la consola.
 
 No vuelvas a clonar ni a `pip install` cada día, salvo que cambien las dependencias.
+
+`git pull` actualiza el código. **No sobrescribe** `config.yaml` ni `.env`. Antes del primer pull que quite `config.yaml` del repo, por si acaso:
+
+```bat
+copy config.yaml config.yaml.bak
+git pull
+if not exist config.yaml copy config.yaml.bak config.yaml
+```
 
 ---
 
@@ -247,7 +256,10 @@ En la raíz del proyecto:
 
 ```bat
 copy .env.example .env
+if not exist config.yaml copy config.yaml.example config.yaml
 ```
+
+`config.yaml` es **solo de tu PC** (lotaje, demo/real, dry-run). No va en git: un `git pull` no lo pisa. Si no existe, el bot lo crea desde `config.yaml.example`.
 
 Ábrelo con el Bloc de notas y rellena (sin comillas):
 
@@ -385,7 +397,8 @@ Opcional: tarea programada al iniciar Windows con `python -m src` (con path y cr
 | Archivo / carpeta        | Qué es                                      | ¿Se comparte? |
 |--------------------------|---------------------------------------------|---------------|
 | `.env`                   | Secretos Telegram + logins MT5              | No            |
-| `config.yaml`            | Lotaje, modo, trail, puerto del panel       | Sí (sin secretos) |
+| `config.yaml`            | Lotaje, modo, trail (tu máquina)            | No (`gitignore`) |
+| `config.yaml.example`    | Plantilla por defecto                       | Sí            |
 | `sessions/piply.session` | Login de tu Telegram                        | No            |
 | `state.json`             | Señales ya procesadas y señal activa        | No hace falta |
 | `src/`                   | Código                                      | Sí            |
@@ -461,6 +474,7 @@ El bot replica la señal. No garantiza beneficio. Empieza con el lote más peque
 python --version
 python -m pip install -r requirements.txt
 copy .env.example .env
+if not exist config.yaml copy config.yaml.example config.yaml
 :: edita .env (Telegram + canal + MT5)
 
 :: Cada sesión
