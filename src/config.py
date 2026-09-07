@@ -15,13 +15,14 @@ DEFAULTS = {
     "pip_size": 0.1,
     "max_spread_pips": 35.0,
     "entry_tolerance": 0.2,
+    "near_entry_pips": 20.0,
     "chase_buffer_pips": 15.0,
     "be_cushion_pips": 2.0,
     "deviation_points": 50,
-    "trail_enabled": True,
+    "trail_enabled": False,
+    "trail_percent": 0.0,
     "trail_start_pips": 80.0,
     "trail_distance_pips": 40.0,
-    "split_take_profits": False,
     "max_concurrent_signals": 1,
     "dry_run": True,
     "telegram_enabled": True,
@@ -36,15 +37,16 @@ EDITABLE_FIELDS = {
     "pip_size",
     "max_spread_pips",
     "entry_tolerance",
+    "near_entry_pips",
     "chase_buffer_pips",
     "be_cushion_pips",
     "deviation_points",
     "trail_enabled",
+    "trail_percent",
     "trail_start_pips",
     "trail_distance_pips",
     "dry_run",
     "telegram_enabled",
-    "split_take_profits",
 }
 
 
@@ -56,13 +58,14 @@ class Settings:
     pip_size: float = 0.1
     max_spread_pips: float = 35.0
     entry_tolerance: float = 0.2
+    near_entry_pips: float = 20.0
     chase_buffer_pips: float = 15.0
     be_cushion_pips: float = 2.0
     deviation_points: int = 50
-    trail_enabled: bool = True
+    trail_enabled: bool = False
+    trail_percent: float = 0.0
     trail_start_pips: float = 80.0
     trail_distance_pips: float = 40.0
-    split_take_profits: bool = False
     max_concurrent_signals: int = 1
     dry_run: bool = True
     telegram_enabled: bool = True
@@ -83,13 +86,14 @@ class Settings:
             "pip_size": self.pip_size,
             "max_spread_pips": self.max_spread_pips,
             "entry_tolerance": self.entry_tolerance,
+            "near_entry_pips": self.near_entry_pips,
             "chase_buffer_pips": self.chase_buffer_pips,
             "be_cushion_pips": self.be_cushion_pips,
             "deviation_points": self.deviation_points,
             "trail_enabled": self.trail_enabled,
+            "trail_percent": self.trail_percent,
             "trail_start_pips": self.trail_start_pips,
             "trail_distance_pips": self.trail_distance_pips,
-            "split_take_profits": self.split_take_profits,
             "max_concurrent_signals": self.max_concurrent_signals,
             "dry_run": self.dry_run,
             "telegram_enabled": self.telegram_enabled,
@@ -175,13 +179,14 @@ class ConfigStore:
             "pip_size": settings.pip_size,
             "max_spread_pips": settings.max_spread_pips,
             "entry_tolerance": settings.entry_tolerance,
+            "near_entry_pips": settings.near_entry_pips,
             "chase_buffer_pips": settings.chase_buffer_pips,
             "be_cushion_pips": settings.be_cushion_pips,
             "deviation_points": settings.deviation_points,
             "trail_enabled": settings.trail_enabled,
+            "trail_percent": settings.trail_percent,
             "trail_start_pips": settings.trail_start_pips,
             "trail_distance_pips": settings.trail_distance_pips,
-            "split_take_profits": settings.split_take_profits,
             "max_concurrent_signals": settings.max_concurrent_signals,
             "dry_run": settings.dry_run,
             "telegram_enabled": settings.telegram_enabled,
@@ -222,15 +227,17 @@ def _coerce(key: str, value: Any) -> Any:
         "pip_size",
         "max_spread_pips",
         "entry_tolerance",
+        "near_entry_pips",
         "chase_buffer_pips",
         "be_cushion_pips",
+        "trail_percent",
         "trail_start_pips",
         "trail_distance_pips",
     }:
         return float(value)
     if key == "deviation_points":
         return int(value)
-    if key in {"dry_run", "telegram_enabled", "trail_enabled", "split_take_profits"}:
+    if key in {"dry_run", "telegram_enabled", "trail_enabled"}:
         if isinstance(value, str):
             return value.strip().lower() in {"1", "true", "yes", "on"}
         return bool(value)

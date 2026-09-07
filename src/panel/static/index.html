@@ -68,6 +68,9 @@
           <label>Tolerancia entrada
             <input name="entry_tolerance" type="number" step="0.01" />
           </label>
+          <label>Cerca de entrada (pips)
+            <input name="near_entry_pips" type="number" step="1" />
+          </label>
           <label>Buffer no perseguir
             <input name="chase_buffer_pips" type="number" step="1" />
           </label>
@@ -77,6 +80,9 @@
           <label>Deviation
             <input name="deviation_points" type="number" step="1" />
           </label>
+          <label>Trail % (TP4, luego)
+            <input name="trail_percent" type="number" step="0.1" min="0" />
+          </label>
           <label>Trail start (pips)
             <input name="trail_start_pips" type="number" step="1" />
           </label>
@@ -85,11 +91,7 @@
           </label>
           <label class="check wide">
             <input name="trail_enabled" type="checkbox" />
-            Trail TP4
-          </label>
-          <label class="check wide">
-            <input name="split_take_profits" type="checkbox" />
-            TP distinto por entrada (L1=TP1, L2=TP2, L3=TP3). Si está apagado, las 3 usan TP3.
+            Activar trail TP4 (ahora se ignora si está apagado)
           </label>
           <label class="check wide" id="telegramRow">
             <input name="telegram_enabled" type="checkbox" />

@@ -369,11 +369,12 @@ También el formato del PDF (Entrada 1 / Entrada 2).
 
 Reglas:
 
-- 3 tickets: FIRST, punto medio y SECOND. Las 3 llevan el **mismo TP3** (y el mismo SL). El gestor pone BE al tocar TP1 y puede hacer trail del SL sin quitar el TP.
-- Si en el panel marcas **TP distinto por entrada**, entonces L1=TP1, L2=TP2, L3=TP3. Si está apagado (recomendado), las 3 usan TP3.
+- Elige **una** entrada: si el precio está cerca de FIRST o SECOND, usa esa; si está cerca de las dos o entre ellas, la **mejor** (BUY la más baja, SELL la más alta).
+- Abre **3 órdenes en ese mismo precio**, mismo lote y el **mismo SL** de la señal (~80 pips).
+- Orden 1 → TP1, orden 2 → TP2, orden 3 → TP3. TP4 (trail) se ignora hasta que actives trail y pongas `trail_percent` en el panel.
 - Mismo lotaje en las tres.
 - BUY: ask ≈ entrada → market; ask por encima → buy limit; ask por debajo → buy stop. SELL al revés.
-- Si el precio ya pasó TP1, descarta la señal (no persigue).
+- Si el precio **aún no tocó TP1**, la señal se pone (market, limit o stop). Solo se **cancela** si ya tocó TP1.
 - Spread demasiado alto → no envía.
 - Al tocar TP1, mueve el SL de lo que quede a **break even del precio medio**.
 - Una sola señal activa a la vez (posiciones/pendientes del magic `260907`).

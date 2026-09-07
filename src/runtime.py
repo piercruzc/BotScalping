@@ -133,7 +133,10 @@ class BotRuntime:
         ]
         if settings.dry_run:
             placed = [_order_dict(order) | {"status": "dry-run"} for order in plan.accepted_orders]
-            self.logs.info(f"Dry-run {signal.direction}: {len(placed)} órdenes planificadas")
+            entry = plan.accepted_orders[0].entry if plan.accepted_orders else "?"
+            self.logs.info(
+                f"Dry-run {signal.direction} @ {entry}: {len(placed)} órdenes TP1/TP2/TP3 SL {signal.sl}"
+            )
             return ExecutionReport(
                 dry_run=True, source=source, rejected=None, placed=placed, skipped=skipped
             )
@@ -221,6 +224,7 @@ def _plan_to_dict(plan: PlanResult, tick: Tick, settings: Settings) -> dict:
         "symbol": settings.symbol,
         "tick": {"bid": tick.bid, "ask": tick.ask},
         "lot_size": settings.lot_size,
+        "chosen_entry": plan.accepted_orders[0].entry if plan.accepted_orders else None,
         "orders": [_order_dict(order) for order in plan.orders],
         "accepted": len(plan.accepted_orders),
     }
