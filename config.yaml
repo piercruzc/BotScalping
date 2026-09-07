@@ -1,0 +1,21 @@
+symbol: XAUUSD
+magic: 260907
+lot_size: 0.01
+pip_size: 0.1
+max_spread_pips: 35
+entry_tolerance: 0.2
+chase_buffer_pips: 15
+be_cushion_pips: 2
+deviation_points: 50
+trail_enabled: true
+trail_start_pips: 80
+trail_distance_pips: 40
+max_concurrent_signals: 1
+dry_run: true
+telegram_enabled: true
+operating_mode: demo
+live_confirmed: false
+panel:
+  enabled: true
+  host: 127.0.0.1
+  port: 8787
