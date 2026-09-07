@@ -30,7 +30,15 @@ class BotRuntime:
         self.safety = Safety()
         self.engine = ExecutionEngine()
         self.notify = Notifier()
+        self.telegram_status = {"connected": False, "channel": "", "error": ""}
         self.connect_mt5()
+
+    def set_telegram_status(self, connected: bool, channel: str, error: str) -> None:
+        self.telegram_status = {
+            "connected": connected,
+            "channel": channel,
+            "error": error,
+        }
 
     def connect_mt5(self) -> AccountSnapshot:
         account = self.mt5.connect(self.config.get())
@@ -72,6 +80,7 @@ class BotRuntime:
             "pendings": [pending.__dict__ for pending in pendings],
             "active": self.state.data.active.__dict__ if self.state.data.active else None,
             "mt5_available": self.mt5.available,
+            "telegram": self.telegram_status,
         }
 
     def preview(self, text: str, message_id: str = "preview") -> dict:

@@ -12,6 +12,63 @@ El bot:
 
 ---
 
+## Después de clonar el repo (Windows)
+
+Ya tienes el código. En **PowerShell** o **CMD**, entra a la carpeta del clone (ajusta la ruta):
+
+```bat
+cd C:\Users\TuUsuario\Documents\BotScalping
+```
+
+### Primera vez en esa PC
+
+Hace falta Python 64-bit 3.10–3.12 y MT5 de Vantage instalados (secciones 2.1 y 2.2). En MT5, una vez: trading algorítmico + botón Algo Trading **verde** + oro en Market Watch (sección 2.2.1).
+
+```bat
+python --version
+python -c "import struct; print(struct.calcsize('P') * 8)"
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+copy .env.example .env
+notepad .env
+```
+
+En `.env` rellena Telegram (`TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_CHANNEL_ID`) y, si no vas a abrir MT5 a mano, `MT5_PATH` + `MT5_DEMO_LOGIN` / `PASSWORD` / `SERVER`. Detalle en las secciones 4 y 5.
+
+Si no estás seguro del ID del canal:
+
+```bat
+python -m src.list_chats
+```
+
+Copia el `TELEGRAM_CHANNEL_ID` de la línea `[CANAL]` del VIP al `.env`. Luego:
+
+```bat
+python -m src
+```
+
+La primera vez Telethon pide teléfono, código y 2FA si la tienes. Cuando la consola diga que el panel está listo:
+
+1. Abre [http://127.0.0.1:8787](http://127.0.0.1:8787)
+2. Revisa que MT5 figure conectado (DEMO).
+3. Deja **Demo** y **dry-run** al principio.
+
+### Las siguientes veces (ya instalado y con `.env`)
+
+```bat
+cd C:\Users\TuUsuario\Documents\BotScalping
+python -m src
+```
+
+- Si `MT5_PATH` + credenciales están en `.env`, no hace falta abrir MT5 a mano.
+- Si `MT5_PATH` está vacío, abre MT5, loguea y deja Algo Trading en verde **antes** de `python -m src`.
+- Panel: [http://127.0.0.1:8787](http://127.0.0.1:8787)
+- Parar: `Ctrl+C` en la consola.
+
+No vuelvas a clonar ni a `pip install` cada día, salvo que cambien las dependencias.
+
+---
+
 ## 1. Qué necesitas tener antes
 
 - Windows 10 u 11 **64-bit**.
@@ -158,13 +215,22 @@ TELEGRAM_CHANNEL_ID=@nombre_del_canal
 
 **Canal privado / VIP** (lo habitual): ID numérico, casi siempre con `-100` delante.
 
-Cómo sacarlo:
+**La forma más segura** (con `.env` ya teniendo `TELEGRAM_API_ID` y `TELEGRAM_API_HASH`):
 
-1. Abre el canal en [https://web.telegram.org](https://web.telegram.org), entra al VIP y mira la URL. Suele verse `#-1001234567890`. Ese número es el ID.
-2. Reenvía un mensaje del canal a [@userinfobot](https://t.me/userinfobot) o [@getidsbot](https://t.me/getidsbot) y copia el ID del **canal**.
-3. En algunos clientes, la info del canal muestra el ID.
+```bat
+python -m src.list_chats
+```
 
-Tienes que ser **miembro** de ese canal con la misma cuenta.
+En la lista busca la línea `[CANAL]` del VIP y copia `TELEGRAM_CHANNEL_ID=...` (empieza por `-100`). **No uses un id de `[usuario]`**. Eso provoca el error `PeerUser` / *Could not find the input entity*.
+
+Otras formas:
+
+1. Telegram Web: entra al VIP y mira la URL (`#-1001234567890`).
+2. Reenvía un mensaje del **canal** (no un chat privado) a [@userinfobot](https://t.me/userinfobot) o [@getidsbot](https://t.me/getidsbot).
+
+`NOTIFY_CHAT_ID` es tu usuario (número positivo). No lo pongas en `TELEGRAM_CHANNEL_ID`.
+
+Tienes que ser **miembro** de ese canal con la misma cuenta del login de Telethon.
 
 ### 4.3 Chat para avisos (`NOTIFY_CHAT_ID`)
 
@@ -330,8 +396,11 @@ Opcional: tarea programada al iniciar Windows con `python -m src` (con path y cr
 **`Telegram no configurado`**  
 Falta `TELEGRAM_API_ID`, `TELEGRAM_API_HASH` o `TELEGRAM_CHANNEL_ID` en `.env`. El archivo debe llamarse exactamente `.env` y estar en la raíz del proyecto.
 
+**`Could not find the input entity for PeerUser` / no sale “Telegram conectado”**  
+Pusiste un ID de **usuario** (el tuyo o el de un bot) en `TELEGRAM_CHANNEL_ID`. Para: `python -m src.list_chats`, copia el id de la línea `[CANAL]` del VIP (con `-100`) al `.env`, reinicia `python -m src`. En el panel, la tarjeta Telegram debe decir el **nombre del canal**.
+
 **No llegan señales del canal**  
-- ID del canal incorrecto (prueba el de Telegram Web con `-100`).  
+- ID del canal incorrecto (prueba `list_chats` o Telegram Web con `-100`).  
 - No eres miembro, o logueaste otra cuenta en Telethon.  
 - Borra `sessions/` solo si quieres reloguear (te pedirá el teléfono otra vez).  
 - El canal tiene que enviar texto con BUY/SELL, entries, TPs y SL. Si no parsea, no opera (y no marca error si el mensaje no parece señal).

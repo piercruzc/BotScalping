@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import Any, Optional
 
 from .config import Settings
@@ -46,10 +47,22 @@ class MT5Client:
             kwargs["password"] = password
         if server:
             kwargs["server"] = server
-        ok = mt5.initialize(**kwargs) if kwargs else mt5.initialize()
+        attempts = 6 if path else 2
+        ok = False
+        last = ""
+        for attempt in range(attempts):
+            ok = mt5.initialize(**kwargs) if kwargs else mt5.initialize()
+            if ok:
+                break
+            last = str(mt5.last_error())
+            time.sleep(2)
         if not ok:
             self._connected = False
-            return AccountSnapshot(connected=False, error=str(mt5.last_error()))
+            hint = (
+                " Abre MT5 a mano o revisa MT5_PATH + MT5_DEMO_LOGIN/PASSWORD/SERVER. "
+                "El path debe ser terminal64.exe de Vantage."
+            )
+            return AccountSnapshot(connected=False, error=f"{last}.{hint}")
         symbol = settings.symbol
         if not mt5.symbol_select(symbol, True):
             self._connected = False

@@ -70,6 +70,11 @@ function renderStatus(data) {
     $("#tickLine").textContent = data.mt5_available ? "Sin tick" : "MetaTrader5 no está en este sistema (usa Windows)";
     $("#spreadLine").textContent = "";
   }
+  const tg = data.telegram || {};
+  $("#tgLine").textContent = tg.connected
+    ? `Conectado · ${tg.channel || "canal"}`
+    : "No conectado al canal";
+  $("#tgDetail").textContent = tg.error || (tg.connected ? "Leyendo señales del VIP" : "python -m src.list_chats");
   const rows = [
     ...data.positions.map((p) => `POS ${p.ticket} ${p.side} ${p.volume} @ ${p.price_open} SL ${p.sl} TP ${p.tp} P/L ${p.profit}`),
     ...data.pendings.map((p) => `PEND ${p.ticket} ${p.kind} ${p.volume} @ ${p.price}`),

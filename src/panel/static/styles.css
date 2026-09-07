@@ -26,7 +26,10 @@ h2 { margin: 0 0 12px; font-size: 16px; }
 .mode-switch button.active[data-mode="demo"] { background: #1f3d24; color: var(--demo); }
 .mode-switch button.active[data-mode="real"] { background: #4a221c; color: #ffb4ab; }
 .status-grid, .columns, .form-grid { display: grid; gap: 14px; }
-.status-grid { grid-template-columns: repeat(3, 1fr); margin-bottom: 14px; }
+.status-grid { grid-template-columns: repeat(2, 1fr); margin-bottom: 14px; }
+@media (min-width: 1100px) {
+  .status-grid { grid-template-columns: repeat(4, 1fr); }
+}
 .status-grid article, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
 .columns { grid-template-columns: 0.9fr 1.1fr; }
 .muted { color: var(--muted); margin: 6px 0 0; }
