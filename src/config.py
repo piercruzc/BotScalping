@@ -23,7 +23,7 @@ DEFAULTS = {
     "trail_percent": 0.0,
     "trail_start_pips": 80.0,
     "trail_distance_pips": 40.0,
-    "max_concurrent_signals": 1,
+    "max_concurrent_signals": 8,
     "dry_run": True,
     "telegram_enabled": True,
     "operating_mode": "demo",
@@ -47,6 +47,7 @@ EDITABLE_FIELDS = {
     "trail_distance_pips",
     "dry_run",
     "telegram_enabled",
+    "max_concurrent_signals",
 }
 
 
@@ -66,7 +67,7 @@ class Settings:
     trail_percent: float = 0.0
     trail_start_pips: float = 80.0
     trail_distance_pips: float = 40.0
-    max_concurrent_signals: int = 1
+    max_concurrent_signals: int = 8
     dry_run: bool = True
     telegram_enabled: bool = True
     operating_mode: str = "demo"
@@ -235,7 +236,7 @@ def _coerce(key: str, value: Any) -> Any:
         "trail_distance_pips",
     }:
         return float(value)
-    if key == "deviation_points":
+    if key in {"deviation_points", "max_concurrent_signals"}:
         return int(value)
     if key in {"dry_run", "telegram_enabled", "trail_enabled"}:
         if isinstance(value, str):

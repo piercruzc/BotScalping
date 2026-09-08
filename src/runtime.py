@@ -17,7 +17,7 @@ from .models import (
 from .mt5_client import MT5Client
 from .notify import Notifier
 from .safety import Safety, SafetyError
-from .state import ActiveSignalState, StateStore
+from .state import ActiveSignalState, StateStore, entries_overlap, signal_token
 
 
 class BotRuntime:
@@ -82,7 +82,7 @@ class BotRuntime:
             "autotrading": at_ok,
             "positions": [pos.__dict__ for pos in positions],
             "pendings": [pending.__dict__ for pending in pendings],
-            "active": self.state.data.active.__dict__ if self.state.data.active else None,
+            "actives": [item.__dict__ for item in self.state.list_actives()],
             "mt5_available": self.mt5.available,
             "telegram": self.telegram_status,
         }
@@ -110,10 +110,9 @@ class BotRuntime:
             self.logs.warn(str(exc))
             return ExecutionReport(dry_run=settings.dry_run, source=source, rejected=str(exc))
 
-        if self._busy(settings) and settings.max_concurrent_signals <= 1:
-            rejected = "Ya hay una señal activa (posiciones o pendientes)."
-            self.logs.warn(rejected)
-            return ExecutionReport(dry_run=settings.dry_run, source=source, rejected=rejected)
+        if reason := self._slot_reason(signal, settings):
+            self.logs.warn(reason)
+            return ExecutionReport(dry_run=settings.dry_run, source=source, rejected=reason)
 
         tick = self.mt5.tick(settings.symbol)
         if tick is None:
@@ -125,6 +124,10 @@ class BotRuntime:
         if plan.rejected:
             self.logs.warn(plan.rejected)
             return ExecutionReport(dry_run=settings.dry_run, source=source, rejected=plan.rejected)
+
+        if reason := self._overlap_reason(signal, settings, plan):
+            self.logs.warn(reason)
+            return ExecutionReport(dry_run=settings.dry_run, source=source, rejected=reason)
 
         skipped = [
             {"leg": order.leg, "reason": order.skip_reason, **_order_dict(order)}
@@ -166,13 +169,18 @@ class BotRuntime:
                 placed.append({**_order_dict(order), "ok": False, "error": str(exc)})
 
         if any(item.get("ok") for item in placed):
-            self.state.set_active(
+            token = signal_token(signal.message_id or f"panel-{source}")
+            self.state.add_active(
                 ActiveSignalState(
                     message_id=signal.message_id or f"panel-{source}",
                     direction=signal.direction,
                     tp1=signal.tp1,
+                    tp2=signal.tp2,
                     sl=signal.sl,
+                    token=token,
+                    entry=plan.accepted_orders[0].entry if plan.accepted_orders else 0.0,
                     be_done=False,
+                    tp2_done=False,
                     source=source,
                 )
             )
@@ -180,15 +188,28 @@ class BotRuntime:
             dry_run=False, source=source, rejected=None, placed=placed, skipped=skipped
         )
 
-    def _busy(self, settings: Settings) -> bool:
-        if self.state.data.active:
-            return True
-        if not self.mt5.account().connected:
-            return False
-        return bool(
-            self.mt5.positions(settings.symbol, settings.magic)
-            or self.mt5.pendings(settings.symbol, settings.magic)
-        )
+    def _slot_reason(self, signal: Signal, settings: Settings) -> str | None:
+        actives = self.state.list_actives()
+        mid = signal.message_id
+        if mid and any(item.message_id == mid for item in actives):
+            return "Esa señal ya está activa."
+        limit = settings.max_concurrent_signals
+        if limit > 0 and len(actives) >= limit:
+            return f"Ya hay {len(actives)} señales activas (máximo {limit})."
+        return None
+
+    def _overlap_reason(self, signal: Signal, settings: Settings, plan: PlanResult) -> str | None:
+        if not plan.accepted_orders:
+            return None
+        entry = plan.accepted_orders[0].entry
+        tol = max(settings.entry_tolerance, settings.pip_size)
+        for item in self.state.list_actives():
+            if entries_overlap(signal.direction, entry, item, tol):
+                return (
+                    f"No se pisa: ya hay un {item.direction} @ {item.entry}. "
+                    "Otra señal solo si la entrada es distinta."
+                )
+        return None
 
     def _require_tick(self, settings: Settings) -> Tick:
         tick = self.mt5.tick(settings.symbol)
@@ -200,7 +221,7 @@ class BotRuntime:
 
 
 def _comment(signal: Signal, order: PlannedOrder) -> str:
-    token = (signal.message_id or "x")[-8:]
+    token = signal_token(signal.message_id or "x")
     return f"p|{token}|{order.leg}"
 
 

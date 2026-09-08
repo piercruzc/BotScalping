@@ -76,8 +76,9 @@ function renderStatus(data) {
     : "No conectado al canal";
   $("#tgDetail").textContent = tg.error || (tg.connected ? "Leyendo señales del VIP" : "python -m src.list_chats");
   const rows = [
-    ...data.positions.map((p) => `POS ${p.ticket} ${p.side} ${p.volume} @ ${p.price_open} SL ${p.sl} TP ${p.tp} P/L ${p.profit}`),
-    ...data.pendings.map((p) => `PEND ${p.ticket} ${p.kind} ${p.volume} @ ${p.price}`),
+    ...(data.actives || []).map((a) => `SEÑAL ${a.direction} @ ${a.entry} · TP1 ${a.tp1} TP2 ${a.tp2} · ${a.be_done ? "BE" : "SL orig"} ${a.tp2_done ? "· lock TP1" : ""}`),
+    ...data.positions.map((p) => `POS ${p.ticket} ${p.side} ${p.volume} @ ${p.price_open} SL ${p.sl} TP ${p.tp} ${p.comment || ""}`),
+    ...data.pendings.map((p) => `PEND ${p.ticket} ${p.kind} ${p.volume} @ ${p.price} ${p.comment || ""}`),
   ];
   $("#books").innerHTML = rows.length
     ? rows.map((row) => `<div>${row}</div>`).join("")
@@ -152,6 +153,7 @@ form.addEventListener("submit", async (event) => {
     chase_buffer_pips: Number(form.chase_buffer_pips.value),
     be_cushion_pips: Number(form.be_cushion_pips.value),
     deviation_points: Number(form.deviation_points.value),
+    max_concurrent_signals: Number(form.max_concurrent_signals.value),
     trail_percent: Number(form.trail_percent.value),
     trail_start_pips: Number(form.trail_start_pips.value),
     trail_distance_pips: Number(form.trail_distance_pips.value),

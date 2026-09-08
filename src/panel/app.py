@@ -30,6 +30,7 @@ class ConfigPatch(BaseModel):
     trail_distance_pips: float | None = Field(default=None, ge=0)
     dry_run: bool | None = None
     telegram_enabled: bool | None = None
+    max_concurrent_signals: int | None = Field(default=None, ge=1)
 
 
 class ModeBody(BaseModel):
