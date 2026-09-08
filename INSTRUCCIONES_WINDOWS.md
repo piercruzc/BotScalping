@@ -376,7 +376,7 @@ Reglas:
 - BUY: ask ≈ entrada → market; ask por encima → buy limit; ask por debajo → buy stop. SELL al revés.
 - Si el precio **aún no tocó TP1**, la señal se pone (market, limit o stop). Solo se **cancela** si ya tocó TP1.
 - Spread demasiado alto → no envía.
-- Al tocar TP1, cierra esa orden y mueve el SL de lo que queda a **break even**.
+- Al tocar TP1, cierra esa orden y mueve el SL de lo que queda a **BE con ganancia mínima** (`be_profit_pips` en el panel, default 8 pips) para cubrir spread y no cerrar en negativo.
 - Al tocar TP2, cierra esa orden y sube el SL del runner a **TP1** (ganancia de TP1 asegurada). TP3 sigue abierto para dejar correr.
 - Trail TP4 (opcional, apagado por defecto): solo después de TP2. `trail_percent` = % de la ganancia flotante que bloqueas (ej. 50 deja correr la otra mitad, sin bajar de TP1).
 - Puedes tener **varias señales abiertas**. Cada una se gestiona sola (BE/TP2 no mueve las otras). Si una nueva cae en la **misma entrada y dirección**, se rechaza para no pisar órdenes.

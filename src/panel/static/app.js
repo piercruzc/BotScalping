@@ -152,6 +152,7 @@ form.addEventListener("submit", async (event) => {
     near_entry_pips: Number(form.near_entry_pips.value),
     chase_buffer_pips: Number(form.chase_buffer_pips.value),
     be_cushion_pips: Number(form.be_cushion_pips.value),
+    be_profit_pips: Number(form.be_profit_pips.value),
     deviation_points: Number(form.deviation_points.value),
     max_concurrent_signals: Number(form.max_concurrent_signals.value),
     trail_percent: Number(form.trail_percent.value),

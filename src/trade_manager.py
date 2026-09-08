@@ -68,9 +68,14 @@ class TradeManager:
         if total_vol <= 0:
             return
         avg = sum(pos.price_open * pos.volume for pos in positions) / total_vol
-        cushion = settings.be_cushion_pips * settings.pip_size
-        new_sl = sl_break_even(active.direction, avg, cushion)
-        self._apply_sl(positions, new_sl, settings, f"SL a BE {new_sl:.2f} (media {avg:.2f})")
+        offset = settings.be_profit_pips * settings.pip_size
+        new_sl = sl_break_even(active.direction, avg, offset)
+        self._apply_sl(
+            positions,
+            new_sl,
+            settings,
+            f"SL a BE+ {new_sl:.2f} (media {avg:.2f}, +{settings.be_profit_pips} pips)",
+        )
         active.be_done = True
         self.runtime.state.update_active(active)
 
@@ -139,10 +144,11 @@ class TradeManager:
                 self.runtime.logs.error(f"No se pudo mover SL {pos.ticket}: {exc}")
 
 
-def sl_break_even(direction: str, avg_entry: float, cushion: float) -> float:
+def sl_break_even(direction: str, avg_entry: float, profit_offset: float) -> float:
+    """SL un poco a favor para cubrir spread y cerrar por encima de 0."""
     if direction == "BUY":
-        return avg_entry - cushion
-    return avg_entry + cushion
+        return avg_entry + profit_offset
+    return avg_entry - profit_offset
 
 
 def sl_lock_tp1(direction: str, tp1: float, cushion: float) -> float:

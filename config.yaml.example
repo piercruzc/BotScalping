@@ -7,6 +7,7 @@ entry_tolerance: 0.2
 near_entry_pips: 20
 chase_buffer_pips: 15
 be_cushion_pips: 2
+be_profit_pips: 8
 deviation_points: 50
 trail_enabled: false
 trail_percent: 0

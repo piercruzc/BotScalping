@@ -23,6 +23,7 @@ class ConfigPatch(BaseModel):
     near_entry_pips: float | None = Field(default=None, ge=0)
     chase_buffer_pips: float | None = Field(default=None, ge=0)
     be_cushion_pips: float | None = Field(default=None, ge=0)
+    be_profit_pips: float | None = Field(default=None, ge=0)
     deviation_points: int | None = Field(default=None, ge=0)
     trail_enabled: bool | None = None
     trail_percent: float | None = Field(default=None, ge=0)

@@ -10,8 +10,12 @@ def test_lock_after_tp2_sell_sits_at_tp1():
     assert sl_lock_tp1("SELL", 4380, 0.2) == 4380.2
 
 
-def test_be_buy_is_under_average():
-    assert sl_break_even("BUY", 4384, 0.2) == 4383.8
+def test_be_buy_locks_small_profit():
+    assert sl_break_even("BUY", 4384, 0.8) == 4384.8
+
+
+def test_be_sell_locks_small_profit():
+    assert sl_break_even("SELL", 4388, 0.8) == 4387.2
 
 
 def test_trail_percent_buy_never_below_tp1_floor():

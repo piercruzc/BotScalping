@@ -18,6 +18,7 @@ DEFAULTS = {
     "near_entry_pips": 20.0,
     "chase_buffer_pips": 15.0,
     "be_cushion_pips": 2.0,
+    "be_profit_pips": 8.0,
     "deviation_points": 50,
     "trail_enabled": False,
     "trail_percent": 0.0,
@@ -40,6 +41,7 @@ EDITABLE_FIELDS = {
     "near_entry_pips",
     "chase_buffer_pips",
     "be_cushion_pips",
+    "be_profit_pips",
     "deviation_points",
     "trail_enabled",
     "trail_percent",
@@ -62,6 +64,7 @@ class Settings:
     near_entry_pips: float = 20.0
     chase_buffer_pips: float = 15.0
     be_cushion_pips: float = 2.0
+    be_profit_pips: float = 8.0
     deviation_points: int = 50
     trail_enabled: bool = False
     trail_percent: float = 0.0
@@ -90,6 +93,7 @@ class Settings:
             "near_entry_pips": self.near_entry_pips,
             "chase_buffer_pips": self.chase_buffer_pips,
             "be_cushion_pips": self.be_cushion_pips,
+            "be_profit_pips": self.be_profit_pips,
             "deviation_points": self.deviation_points,
             "trail_enabled": self.trail_enabled,
             "trail_percent": self.trail_percent,
@@ -183,6 +187,7 @@ class ConfigStore:
             "near_entry_pips": settings.near_entry_pips,
             "chase_buffer_pips": settings.chase_buffer_pips,
             "be_cushion_pips": settings.be_cushion_pips,
+            "be_profit_pips": settings.be_profit_pips,
             "deviation_points": settings.deviation_points,
             "trail_enabled": settings.trail_enabled,
             "trail_percent": settings.trail_percent,
@@ -231,6 +236,7 @@ def _coerce(key: str, value: Any) -> Any:
         "near_entry_pips",
         "chase_buffer_pips",
         "be_cushion_pips",
+        "be_profit_pips",
         "trail_percent",
         "trail_start_pips",
         "trail_distance_pips",
