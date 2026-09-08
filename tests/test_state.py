@@ -2,6 +2,7 @@ from src.state import (
     ActiveSignalState,
     StateStore,
     comment_belongs,
+    comment_leg,
     entries_overlap,
     signal_token,
 )
@@ -21,6 +22,12 @@ def test_legacy_single_active_loads_as_list(tmp_path):
 def test_comment_belongs_isolates_signals():
     assert comment_belongs("p|abc12345|1", "abc12345")
     assert not comment_belongs("p|zzzzzzzz|1", "abc12345")
+
+
+def test_comment_belongs_survives_mt5_prefix_or_suffix():
+    assert comment_belongs("from #12 p|abc12345|2", "abc12345")
+    assert comment_belongs("p|abc12345|3 extra", "abc12345")
+    assert comment_leg("p|abc12345|2 extra") == 2
 
 
 def test_same_direction_same_entry_overlaps():

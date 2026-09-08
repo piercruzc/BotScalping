@@ -17,7 +17,7 @@ from .models import (
 from .mt5_client import MT5Client
 from .notify import Notifier
 from .safety import Safety, SafetyError
-from .state import ActiveSignalState, StateStore, entries_overlap, signal_token
+from .state import ActiveSignalState, StateStore, comment_belongs, comment_leg, entries_overlap, signal_token
 
 
 class BotRuntime:
@@ -170,14 +170,17 @@ class BotRuntime:
 
         if any(item.get("ok") for item in placed):
             token = signal_token(signal.message_id or f"panel-{source}")
+            tickets = _tickets_for_signal(self, signal, placed, settings, token)
             self.state.add_active(
                 ActiveSignalState(
                     message_id=signal.message_id or f"panel-{source}",
                     direction=signal.direction,
                     tp1=signal.tp1,
                     tp2=signal.tp2,
+                    tp3=signal.tp3,
                     sl=signal.sl,
                     token=token,
+                    tickets=tickets,
                     entry=plan.accepted_orders[0].entry if plan.accepted_orders else 0.0,
                     be_done=False,
                     tp2_done=False,
@@ -223,6 +226,39 @@ class BotRuntime:
 def _comment(signal: Signal, order: PlannedOrder) -> str:
     token = signal_token(signal.message_id or "x")
     return f"p|{token}|{order.leg}"
+
+
+def _tickets_for_signal(
+    runtime: BotRuntime,
+    signal: Signal,
+    placed: list[dict],
+    settings: Settings,
+    token: str,
+) -> list[int]:
+    tickets = [0, 0, 0]
+    for item in placed:
+        if not item.get("ok"):
+            continue
+        leg = int(item.get("leg") or 0)
+        order_id = int(item.get("order") or 0)
+        if 1 <= leg <= 3 and order_id:
+            tickets[leg - 1] = order_id
+    try:
+        for pos in runtime.mt5.positions(settings.symbol, settings.magic):
+            if not comment_belongs(pos.comment, token):
+                continue
+            leg = comment_leg(pos.comment)
+            if leg and 1 <= leg <= 3:
+                tickets[leg - 1] = pos.ticket
+        for pend in runtime.mt5.pendings(settings.symbol, settings.magic):
+            if not comment_belongs(pend.comment, token):
+                continue
+            leg = comment_leg(pend.comment)
+            if leg and 1 <= leg <= 3:
+                tickets[leg - 1] = pend.ticket
+    except Exception:  # noqa: BLE001
+        pass
+    return tickets
 
 
 def _order_dict(order: PlannedOrder) -> dict:

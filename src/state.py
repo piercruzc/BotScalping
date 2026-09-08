@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import threading
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -16,6 +17,8 @@ class ActiveSignalState:
     token: str = ""
     entry: float = 0.0
     tp2: float = 0.0
+    tp3: float = 0.0
+    tickets: list[int] = field(default_factory=list)
     be_done: bool = False
     tp2_done: bool = False
     source: str = ""
@@ -92,10 +95,24 @@ def signal_token(message_id: str) -> str:
     return (message_id or "x")[-8:]
 
 
+_COMMENT_RE = re.compile(r"p\|([^|]+)\|(\d+)")
+
+
 def comment_belongs(comment: str, token: str) -> bool:
     if not token:
         return False
-    return (comment or "").startswith(f"p|{token}|")
+    text = comment or ""
+    if f"p|{token}|" in text:
+        return True
+    parsed = _COMMENT_RE.search(text)
+    return bool(parsed and parsed.group(1) == token)
+
+
+def comment_leg(comment: str) -> int | None:
+    parsed = _COMMENT_RE.search(comment or "")
+    if not parsed:
+        return None
+    return int(parsed.group(2))
 
 
 def entries_overlap(direction: str, entry: float, other: ActiveSignalState, tolerance: float) -> bool:
@@ -118,4 +135,11 @@ def _active_from_dict(raw: dict[str, Any]) -> ActiveSignalState:
     item = ActiveSignalState(**{key: value for key, value in raw.items() if key in allowed})
     if not item.token:
         item.token = signal_token(item.message_id)
+    cleaned: list[int] = []
+    for value in item.tickets or []:
+        try:
+            cleaned.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    item.tickets = cleaned
     return item

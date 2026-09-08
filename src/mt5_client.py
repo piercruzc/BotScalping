@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import time
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from .config import Settings
@@ -124,17 +125,28 @@ class MT5Client:
         return Tick(bid=float(data.bid), ask=float(data.ask))
 
     def symbol_meta(self, symbol: str) -> dict[str, Any]:
+        fallback = {
+            "digits": 2,
+            "point": 0.01,
+            "volume_min": 0.01,
+            "volume_step": 0.01,
+            "stop_distance": 0.02,
+        }
         if mt5 is None or not self._connected:
-            return {"digits": 2, "point": 0.01, "volume_min": 0.01, "volume_step": 0.01}
+            return fallback
         info = mt5.symbol_info(symbol)
         if info is None:
-            return {"digits": 2, "point": 0.01, "volume_min": 0.01, "volume_step": 0.01}
+            return fallback
+        point = float(info.point)
+        stops = int(getattr(info, "trade_stops_level", 0) or 0)
+        freeze = int(getattr(info, "trade_freeze_level", 0) or 0)
         return {
             "digits": int(info.digits),
-            "point": float(info.point),
+            "point": point,
             "volume_min": float(info.volume_min),
             "volume_step": float(info.volume_step),
             "filling_mode": int(info.filling_mode),
+            "stop_distance": float(max(stops, freeze) * point + point * 2),
         }
 
     def positions(self, symbol: str, magic: int) -> list[PositionSnapshot]:
@@ -239,6 +251,9 @@ class MT5Client:
             "leg": order.leg,
         }
 
+    def stop_distance(self, symbol: str) -> float:
+        return float(self.symbol_meta(symbol).get("stop_distance") or 0.0)
+
     def modify_sl(self, ticket: int, sl: float, tp: float, settings: Settings) -> dict[str, Any]:
         if mt5 is None or not self._connected:
             raise RuntimeError("MT5 no está conectado")
@@ -254,7 +269,74 @@ class MT5Client:
         result = mt5.order_send(request)
         if result is None:
             raise RuntimeError(f"modify falló: {mt5.last_error()}")
-        return {"ok": int(result.retcode) in {10008, 10009}, "retcode": int(result.retcode)}
+        retcode = int(result.retcode)
+        return {
+            "ok": retcode in {10008, 10009},
+            "retcode": retcode,
+            "hint": _retcode_hint(retcode),
+            "comment": str(getattr(result, "comment", "") or ""),
+        }
+
+    def modify_pending(
+        self,
+        ticket: int,
+        price: float,
+        sl: float,
+        tp: float,
+        settings: Settings,
+    ) -> dict[str, Any]:
+        if mt5 is None or not self._connected:
+            raise RuntimeError("MT5 no está conectado")
+        meta = self.symbol_meta(settings.symbol)
+        request = {
+            "action": mt5.TRADE_ACTION_MODIFY,
+            "order": ticket,
+            "price": _round_price(price, meta["digits"]),
+            "sl": _round_price(sl, meta["digits"]),
+            "tp": _round_price(tp, meta["digits"]) if tp else 0.0,
+        }
+        result = mt5.order_send(request)
+        if result is None:
+            raise RuntimeError(f"modify pending falló: {mt5.last_error()}")
+        retcode = int(result.retcode)
+        return {
+            "ok": retcode in {10008, 10009},
+            "retcode": retcode,
+            "hint": _retcode_hint(retcode),
+            "comment": str(getattr(result, "comment", "") or ""),
+        }
+
+    def closed_by_tp(
+        self,
+        symbol: str,
+        magic: int,
+        tp_price: float,
+        token: str,
+        tolerance: float,
+    ) -> bool:
+        if mt5 is None or not self._connected or tp_price <= 0:
+            return False
+        now = datetime.now()
+        rows = mt5.history_deals_get(now - timedelta(days=2), now) or []
+        reason_tp = int(getattr(mt5, "DEAL_REASON_TP", 5))
+        entry_out = int(getattr(mt5, "DEAL_ENTRY_OUT", 1))
+        for row in rows:
+            if str(getattr(row, "symbol", "")) != symbol:
+                continue
+            if int(getattr(row, "magic", 0) or 0) != magic:
+                continue
+            if int(getattr(row, "entry", 0) or 0) != entry_out:
+                continue
+            price = float(getattr(row, "price", 0) or 0)
+            if abs(price - tp_price) > tolerance:
+                continue
+            comment = str(getattr(row, "comment", "") or "")
+            reason = int(getattr(row, "reason", 0) or 0)
+            if token and f"p|{token}|" in comment:
+                return True
+            if reason == reason_tp and token and token in comment:
+                return True
+        return False
 
 
 def _retcode_hint(retcode: int) -> str:
